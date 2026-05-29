@@ -21,7 +21,7 @@ export function withLogging(handler: Handler) {
       }
     }
 
-    logRequest({
+    await logRequest({
       method: req.method,
       path: url.pathname,
       query: url.search,
