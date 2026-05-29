@@ -34,6 +34,15 @@ npm run build
 npm start          # also serves on port 6743
 ```
 
+## Interactive API docs (Swagger UI)
+
+Open **http://localhost:6743/docs** for a Swagger UI page to exercise every
+endpoint from the browser (pre-filled examples for all 3 call paths). The raw
+OpenAPI 3.1 spec is served at `/api/openapi`.
+
+Swagger UI assets load from a pinned CDN (no npm dependency added), so the docs
+page needs internet access when it loads — the API itself does not.
+
 ## Test the endpoints (curl)
 
 With the server running on `http://localhost:6743`, a demo operator can drive
