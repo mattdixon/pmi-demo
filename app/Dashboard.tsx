@@ -41,9 +41,12 @@ function formatRequest(entry: Extract<LogEntry, { type: "request" }>): string {
   return line;
 }
 
+type Health = { store: string; redis: { configured: boolean; connected: boolean } };
+
 export default function Dashboard() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [health, setHealth] = useState<Health | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -62,6 +65,11 @@ export default function Dashboard() {
       }
     }
 
+    fetch("/api/health", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((h) => alive && setHealth(h))
+      .catch(() => {});
+
     poll();
     const id = setInterval(poll, 2000);
     return () => {
@@ -70,8 +78,17 @@ export default function Dashboard() {
     };
   }, []);
 
+  const storeOk = health?.redis.configured && health.redis.connected;
+
   return (
     <>
+      {health && (
+        <div className={`store-badge ${storeOk ? "ok" : "warn"}`}>
+          {storeOk
+            ? "Shared store: Redis connected — consistent across instances"
+            : "Shared store: in-memory fallback — entries may flicker on Vercel (provision Upstash Redis)"}
+        </div>
+      )}
       <section className="panel">
         <div className="panel-title">
           <span>
