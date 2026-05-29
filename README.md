@@ -5,17 +5,39 @@ proves the call loop end to end using **mocked AppFolio data**: a simulated call
 looks up a tenant, classifies the issue, and creates a ticket that appears live
 on a projected dashboard within ~2 seconds.
 
-No database. All state lives in memory in the running process. Zero external
-services. Deploy target is Vercel.
+No relational database / no schema. State (logs + tickets) lives in **Upstash
+Redis** so it stays consistent across Vercel's serverless instances. Deploy
+target is Vercel.
 
-> In-memory state survives only while the process is warm (~5 min idle on
-> Vercel, then resets). Send a warmup request right before a live demo.
+> **Why Redis?** On Vercel each request can run in a *different* serverless
+> instance, and module memory isn't shared between them — so a ticket created on
+> one instance wouldn't show up when the dashboard polls another. A shared store
+> fixes that (and also survives cold starts). If no Redis credentials are
+> present (e.g. local dev), the app automatically falls back to in-memory state,
+> which is fine locally because there's a single process.
 
 ## Stack
 
 - Next.js (App Router) + TypeScript
 - React 19
-- In-memory ring-buffer logger + in-memory ticket store
+- Upstash Redis for shared log + ticket state (in-memory fallback when unconfigured)
+
+## Redis setup (Upstash)
+
+Required only for Vercel (or any multi-instance host). For purely local runs you
+can skip this — the app falls back to in-memory.
+
+1. In the **Vercel dashboard → Storage → Upstash (Redis)**, create a database
+   (free tier is fine). Connect it to this project.
+2. Vercel injects the credentials as env vars automatically. The app reads
+   either naming scheme:
+   - `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`, or
+   - `KV_REST_API_URL` / `KV_REST_API_TOKEN`
+3. To exercise the Redis path locally, put the same two vars in `.env.local`:
+   ```bash
+   UPSTASH_REDIS_REST_URL=https://your-db.upstash.io
+   UPSTASH_REDIS_REST_TOKEN=your-token
+   ```
 
 ## Local run
 
@@ -78,15 +100,18 @@ curl http://localhost:6743/api/tickets    # all tickets (most recent first)
 
 1. Push this repo to GitHub (or run `vercel` from the project root).
 2. In Vercel, **New Project** → import the repo.
-3. Framework preset auto-detects **Next.js**. No env vars, no build overrides
-   needed — accept the defaults.
-4. Deploy. The dashboard is served at the project root `/`.
+3. Framework preset auto-detects **Next.js** (also pinned via `vercel.json`).
+4. **Provision Upstash Redis** and connect it to the project (see _Redis setup_
+   above) so state is shared across instances. Without it, tickets created on one
+   instance won't appear on the dashboard polling another.
+5. Deploy. The dashboard is served at the project root `/`.
 
 Notes for demo day:
 - Open the deployed URL in Chrome, projected on screen.
-- Fire one warmup request (any curl above) immediately before the live call so
+- Fire one warmup request (any curl below) immediately before the live call so
   the serverless function is hot.
-- If state looks stale mid-demo, refresh the dashboard at the start of each path.
+- State now persists in Redis, so it survives cold starts and is consistent
+  across instances — no need to refresh between paths.
 
 ## API reference
 
@@ -108,7 +133,8 @@ Notes for demo day:
 
 ## Logging behavior
 
-A module-scoped ring buffer (cap 500) records two line types:
+A ring buffer (cap 500), backed by a Redis list (or module memory when Redis is
+unconfigured), records two line types:
 
 - **request** — method/path/query/body, logged *before* the handler runs.
 - **app** — handler-level messages via a `log()` helper.
@@ -121,6 +147,12 @@ the actual demo activity.
 
 ## Scope
 
-This POC deliberately omits auth, real AppFolio integration, persistence, rate
-limiting, alerts, caller ID, agent branching, and dispatch logic. Those belong
-to Stage 1 / Stage 2 of the production build and are out of scope on purpose.
+This POC deliberately omits auth, real AppFolio integration, rate limiting,
+alerts, caller ID, agent branching, and dispatch logic. Those belong to Stage 1 /
+Stage 2 of the production build and are out of scope on purpose.
+
+> Note: the PRD listed "no database / zero external services." We added Upstash
+> Redis purely to keep the live dashboard consistent across Vercel's serverless
+> instances — without shared state the demo's core visual (ticket appears within
+> 2s) is unreliable. It's a thin key/value store for logs + tickets, not a
+> relational schema, and the app still falls back to in-memory when it's absent.

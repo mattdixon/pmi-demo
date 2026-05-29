@@ -17,18 +17,18 @@ export const POST = withLogging(async (_req, body) => {
   const issue_type = data.issue_type as IssueType;
   const description = typeof data.description === "string" ? data.description : "";
 
-  log(
+  await log(
     `Creating ${issue_type} ticket for tenant_id ${data.tenant_id}: ${description}`
   );
 
   const tenant = Number.isInteger(tenant_id) ? getTenantById(tenant_id) : undefined;
 
   if (!tenant) {
-    log("Invalid tenant_id");
+    await log("Invalid tenant_id");
     return NextResponse.json({ error: "invalid tenant_id" }, { status: 400 });
   }
 
-  const ticket = createTicket({
+  const ticket = await createTicket({
     tenant_id: tenant.tenant_id,
     tenant_name: `${tenant.first_name} ${tenant.last_name}`,
     complex: tenant.complex,
@@ -37,11 +37,11 @@ export const POST = withLogging(async (_req, body) => {
     description,
   });
 
-  log(`Ticket #${ticket.ticket_id} created`);
+  await log(`Ticket #${ticket.ticket_id} created`);
   return NextResponse.json(ticket, { status: 201 });
 });
 
 // Dashboard polling helper — intentionally NOT request-logged (see /api/logs).
 export const GET = async () => {
-  return NextResponse.json(getTickets(), { status: 200 });
+  return NextResponse.json(await getTickets(), { status: 200 });
 };
