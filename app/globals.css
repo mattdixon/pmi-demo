@@ -46,6 +46,25 @@ body {
   font-size: 12px;
 }
 
+.store-badge {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+}
+
+.store-badge.ok {
+  color: var(--green);
+  border-color: var(--green);
+  background: rgba(63, 185, 80, 0.08);
+}
+
+.store-badge.warn {
+  color: var(--yellow);
+  border-color: var(--yellow);
+  background: rgba(212, 167, 44, 0.08);
+}
+
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);

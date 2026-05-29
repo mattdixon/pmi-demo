@@ -65,6 +65,9 @@ OpenAPI 3.1 spec is served at `/api/openapi`.
 Swagger UI assets load from a pinned CDN (no npm dependency added), so the docs
 page needs internet access when it loads — the API itself does not.
 
+Check **http://localhost:6743/api/health** (or `/api/health` on the deployed URL)
+to confirm the shared Redis store is actually connected.
+
 ## Test the endpoints (curl)
 
 With the server running on `http://localhost:6743`, a demo operator can drive
@@ -120,7 +123,8 @@ Notes for demo day:
 | GET  | `/api/lookup?complex=X&unit=Y` | Look up tenant (case-insensitive). 200 + record, or 404 `{ error: "not found" }`. |
 | POST | `/api/tickets` | Create a ticket. Body `{ tenant_id, issue_type, description }`. 201 + ticket, or 400 on bad `tenant_id`. |
 | GET  | `/api/tickets` | All tickets in memory (dashboard helper). |
-| GET  | `/api/logs` | In-memory log buffer (dashboard helper). |
+| GET  | `/api/logs` | Log buffer (dashboard helper). |
+| GET  | `/api/health` | Reports whether the shared Redis store is connected. `store: "redis"` + `connected: true` = good; `in-memory (fallback)` = state is per-instance. |
 
 `issue_type` is one of `callback` | `urgent` | `maintenance`.
 
