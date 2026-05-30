@@ -57,3 +57,11 @@ export async function getLogs(): Promise<LogEntry[]> {
   }
   return [...mem];
 }
+
+export async function clearLogs(): Promise<void> {
+  if (redis) {
+    await redis.del(KEY);
+  } else {
+    mem.length = 0;
+  }
+}
