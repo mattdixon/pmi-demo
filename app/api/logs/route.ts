@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getLogs } from "@/lib/logger";
+import { clearLogs, getLogs } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -7,4 +7,9 @@ export const dynamic = "force-dynamic";
 // does not flood the live feed and bury the actual call-loop lines.
 export const GET = async () => {
   return NextResponse.json(await getLogs(), { status: 200 });
+};
+
+export const DELETE = async () => {
+  await clearLogs();
+  return NextResponse.json({ ok: true }, { status: 200 });
 };

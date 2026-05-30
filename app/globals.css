@@ -84,6 +84,35 @@ body {
   align-items: center;
 }
 
+.title-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.clear-btn {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.clear-btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.clear-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .dot {
   display: inline-block;
   width: 8px;

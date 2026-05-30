@@ -85,7 +85,7 @@ export default function Dashboard() {
       {health && (
         <div className={`store-badge ${storeOk ? "ok" : "warn"}`}>
           {storeOk
-            ? "Shared store: Redis connected — consistent across instances"
+            ? "Connected"
             : "Shared store: in-memory fallback — entries may flicker on Vercel (provision Upstash Redis)"}
         </div>
       )}
@@ -95,7 +95,20 @@ export default function Dashboard() {
             <span className="dot" />
             Live log feed
           </span>
-          <span>{logs.length} entries</span>
+          <span className="title-actions">
+            <span>{logs.length} entries</span>
+            <button
+              type="button"
+              className="clear-btn"
+              onClick={async () => {
+                await fetch("/api/logs", { method: "DELETE" });
+                setLogs([]);
+              }}
+              disabled={logs.length === 0}
+            >
+              Clear
+            </button>
+          </span>
         </div>
         <div className="feed">
           {logs.length === 0 && (
