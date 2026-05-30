@@ -33,12 +33,39 @@ function isUrgentLog(entry: LogEntry): boolean {
   return body?.issue_type === "urgent";
 }
 
-function formatRequest(entry: Extract<LogEntry, { type: "request" }>): string {
-  let line = `${entry.path}${entry.query ?? ""}`;
-  if (entry.body !== undefined && entry.body !== null) {
-    line += ` ${JSON.stringify(entry.body)}`;
+function hasBody(entry: Extract<LogEntry, { type: "request" }>): boolean {
+  return entry.body !== undefined && entry.body !== null;
+}
+
+// Collapsible JSON payload: one-line preview with an expand toggle, full
+// pretty-printed body when open. Keeps long bodies from flooding the feed.
+function Payload({ body }: { body: unknown }) {
+  const [open, setOpen] = useState(false);
+  const oneLine = JSON.stringify(body);
+  const pretty = JSON.stringify(body, null, 2);
+  // Short payloads aren't worth a toggle — show them inline.
+  if (oneLine.length <= 60) {
+    return <span className="payload-inline">{oneLine}</span>;
   }
-  return line;
+  return (
+    <span className="payload">
+      <button
+        type="button"
+        className="payload-toggle"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        {open ? "▾ payload" : "▸ payload"}
+      </button>
+      {open ? (
+        <pre className="payload-body">{pretty}</pre>
+      ) : (
+        <span className="payload-preview">
+          {oneLine.slice(0, 57)}…
+        </span>
+      )}
+    </span>
+  );
 }
 
 type Health = { store: string; redis: { configured: boolean; connected: boolean } };
@@ -118,15 +145,26 @@ export default function Dashboard() {
             const urgent = isUrgentLog(entry);
             const cls = `log-line ${entry.type}${urgent ? " urgent" : ""}`;
             const tag = entry.type === "request" ? entry.method : "app";
-            const msg =
-              entry.type === "request"
-                ? formatRequest(entry)
-                : entry.message;
             return (
               <div key={i} className={cls}>
                 <span className="ts">{entry.timestamp}</span>
                 <span className="tag">{tag}</span>
-                <span className="msg">{msg}</span>
+                <span className="msg">
+                  {entry.type === "request" ? (
+                    <>
+                      {entry.path}
+                      {entry.query ?? ""}
+                      {hasBody(entry) && (
+                        <>
+                          {" "}
+                          <Payload body={entry.body} />
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    entry.message
+                  )}
+                </span>
               </div>
             );
           })}

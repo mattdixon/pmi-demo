@@ -55,6 +55,47 @@ const spec = {
           },
         },
       },
+      post: {
+        summary: "Look up a tenant by complex + unit (JSON body)",
+        description:
+          "Same lookup as GET, but complex/unit are passed in the JSON body. " +
+          "Used by the Retell lookup_apartment tool when configured as a POST " +
+          "with an LLM-filled parameter schema.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["complex", "unit"],
+                properties: {
+                  complex: { type: "string", example: "Cherry Creek Commons" },
+                  unit: { type: "string", example: "2A" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Tenant found",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Tenant" },
+              },
+            },
+          },
+          "404": {
+            description: "No tenant found",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Error" },
+                example: { error: "not found" },
+              },
+            },
+          },
+        },
+      },
     },
     "/api/tickets": {
       post: {

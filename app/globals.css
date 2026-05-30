@@ -178,6 +178,48 @@ body {
   text-transform: uppercase;
 }
 
+.payload-inline {
+  color: var(--muted);
+}
+
+.payload-toggle {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0 7px;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.6;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.payload-toggle:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.payload-preview {
+  color: var(--muted);
+  margin-left: 6px;
+  opacity: 0.8;
+}
+
+.payload-body {
+  margin: 6px 0 2px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+
 .empty {
   padding: 20px 16px;
   color: var(--muted);
